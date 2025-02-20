@@ -1,5 +1,7 @@
 streamlit
-openai
 pandas
-python-dotenv
-openpyxl
+pdf2docx
+python-docx
+docx2pdf
+dataframe-image
+fpdf

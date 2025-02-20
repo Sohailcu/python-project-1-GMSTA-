@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
+import tempfile
+import os
 import base64
+from pdf2docx import Converter
+from docx2pdf import convert
+from fpdf import FPDF
+from docx import Document
 import datetime
 
 # 🌱 Growth Mindset Introduction
@@ -121,134 +127,6 @@ elif page == "Mindset Quiz":
             st.error("You may have a fixed mindset. Consider adopting more growth-oriented beliefs!")
 
 elif page == "File Converter":
-    st.title("📂 File Converter")
-    st.write("Upload a file to convert it to another format.")
-
-    # File uploader
-    uploaded_file = st.file_uploader("Choose a file", type=["txt", "pdf", "docx", "xlsx", "csv"])
-    if uploaded_file is not None:
-        file_details = {"filename": uploaded_file.name, "filetype": uploaded_file.type, "filesize": uploaded_file.size}
-        st.write(file_details)
-
-        # Display file content
-        if uploaded_file.type == "text/plain":
-            st.write("**File Content:**")
-            st.text(uploaded_file.getvalue().decode("utf-8"))
-
-        elif uploaded_file.type == "application/pdf":
-            st.write("**PDF File Detected**")
-            st.write("Convert PDF to Word (DOCX):")
-            if st.button("Convert PDF to DOCX"):
-                from pdf2docx import Converter
-                import tempfile
-                import os
-
-                # Save uploaded PDF to a temporary file
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
-                    tmp_pdf.write(uploaded_file.getvalue())
-                    tmp_pdf_path = tmp_pdf.name
-
-                # Convert PDF to DOCX
-                docx_path = tmp_pdf_path.replace(".pdf", ".docx")
-                cv = Converter(tmp_pdf_path)
-                cv.convert(docx_path)
-                cv.close()
-
-                # Provide download link for the converted DOCX file
-                with open(docx_path, "rb") as f:
-                    bytes_data = f.read()
-                    b64 = base64.b64encode(bytes_data).decode()
-                    href = f'<a href="data:application/octet-stream;base64,{b64}" download="converted.docx">Download Converted DOCX File</a>'
-                    st.markdown(href, unsafe_allow_html=True)
-
-                # Clean up temporary files
-                os.remove(tmp_pdf_path)
-                os.remove(docx_path)
-
-        elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            st.write("**Word Document Detected**")
-            st.write("Convert DOCX to PDF:")
-            if st.button("Convert DOCX to PDF"):
-                from docx2pdf import convert # type: ignore
-                import tempfile
-                import os
-
-                # Save uploaded DOCX to a temporary file
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp_docx:
-                    tmp_docx.write(uploaded_file.getvalue())
-                    tmp_docx_path = tmp_docx.name
-
-                # Convert DOCX to PDF
-                pdf_path = tmp_docx_path.replace(".docx", ".pdf")
-                convert(tmp_docx_path, pdf_path)
-
-                # Provide download link for the converted PDF file
-                with open(pdf_path, "rb") as f:
-                    bytes_data = f.read()
-                    b64 = base64.b64encode(bytes_data).decode()
-                    href = f'<a href="data:application/octet-stream;base64,{b64}" download="converted.pdf">Download Converted PDF File</a>'
-                    st.markdown(href, unsafe_allow_html=True)
-
-                # Clean up temporary files
-                os.remove(tmp_docx_path)
-                os.remove(pdf_path)
-
-        elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-            st.write("**Excel File Detected**")
-            st.write("Convert Excel to CSV or PDF:")
-            df = pd.read_excel(uploaded_file)
-
-            if st.button("Convert Excel to CSV"):
-                csv = df.to_csv(index=False).encode("utf-8")
-                st.download_button(
-                    label="Download CSV File",
-                    data=csv,
-                    file_name="converted.csv",
-                    mime="text/csv"
-                )
-
-            if st.button("Convert Excel to PDF"):
-                import dataframe_image as dfi # type: ignore
-                import tempfile
-                import os
-
-                # Save DataFrame as an image
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
-                    dfi.export(df, tmp_img.name)
-                    tmp_img_path = tmp_img.name
-
-                # Convert image to PDF
-                from fpdf import FPDF # type: ignore
-                pdf_path = tmp_img_path.replace(".png", ".pdf")
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.image(tmp_img_path, x=10, y=10, w=190)
-                pdf.output(pdf_path)
-
-                # Provide download link for the converted PDF file
-                with open(pdf_path, "rb") as f:
-                    bytes_data = f.read()
-                    b64 = base64.b64encode(bytes_data).decode()
-                    href = f'<a href="data:application/octet-stream;base64,{b64}" download="converted.pdf">Download Converted PDF File</a>'
-                    st.markdown(href, unsafe_allow_html=True)
-
-                # Clean up temporary files
-                os.remove(tmp_img_path)
-                os.remove(pdf_path)
-
-        elif uploaded_file.type == "text/csv":
-            st.write("**CSV File Detected**")
-            st.write("Convert CSV to Excel (XLSX):")
-            df = pd.read_csv(uploaded_file)
-
-            if st.button("Convert CSV to Excel"):
-                excel_file = df.to_excel("converted.xlsx", index=False)
-                with open("converted.xlsx", "rb") as f:
-                    bytes_data = f.read()
-                    b64 = base64.b64encode(bytes_data).decode()
-                    href = f'<a href="data:application/octet-stream;base64,{b64}" download="converted.xlsx">Download Converted Excel File</a>'
-                    st.markdown(href, unsafe_allow_html=True)
-                    
     st.title("📂 File Converter")
     st.write("Upload a file to convert it to another format.")
 
